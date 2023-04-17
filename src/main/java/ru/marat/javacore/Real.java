@@ -61,28 +61,38 @@ public class Real<T> implements List<T>, AuthorHolder {
         return true;
     }
 
-    @Override // передвинуть правые елементы влево от удаленного элемента
+    @Override
     public boolean remove(Object o) {
-        Object[] obj = new Object[array.length - 1];
+        boolean findElement = false;
         for (int i = 0; i < array.length - 1; i++) {
-            if (!array[i].equals(o)) {
-                obj[i] = array[i];
+            if (array[i].equals(o)) {
+                findElement = true;
+                for (int j = i + 1; j < array.length; j++) {
+                    array[i] = array[j];
+                    i++;
+                }
+                break;
             }
         }
 
-        array = obj;
         size--;
-        return true;
+        array = Arrays.copyOf(array, size);
+        return findElement;
     }
 
     @Override
     public boolean containsAll(Collection<?> c) {
+        int counter = 0;
         for (Object o : c) {
-            if (!contains(o)) {
-                return false;
+            for (int i = 0; i < size; i++) {
+                if (o.equals(array[i])) {
+                    counter++;
+                    break;
+                }
             }
         }
-        return true;
+
+        return counter == c.size();
     }
 
     @Override
@@ -97,10 +107,9 @@ public class Real<T> implements List<T>, AuthorHolder {
                 array[i] = newArray[counter];
                 counter++;
             }
-
         }
         size = newSize;
-        return true;
+        return c.size() != 0;
     }
 
     @Override
@@ -127,7 +136,7 @@ public class Real<T> implements List<T>, AuthorHolder {
                 array[i] = array[i - sizeDifference];
         }
         size = newSize;
-        return true;
+        return c.size() != 0;
     }
 
     @Override
@@ -305,15 +314,13 @@ public class Real<T> implements List<T>, AuthorHolder {
 
     @Override
     public String toString() {
-        return Arrays.toString(array) +
-                ", index=" + size;
+        return Arrays.toString(array);
     }
 
     @Override
     public String getAuthor() {
         return FirstName + " " + Name;
     }
-
     private class MyIterator implements Iterator<T> {
         private int index = 0;
 
@@ -358,7 +365,7 @@ public class Real<T> implements List<T>, AuthorHolder {
 
         @Override
         public boolean hasPrevious() {
-            return lastIndex < size;
+            return lastIndex >= 0;
         }
 
         @Override
@@ -384,7 +391,7 @@ public class Real<T> implements List<T>, AuthorHolder {
         @Override
         public void remove() {
             calledRemove = true;
-            Real.this.remove(index);
+            Real.this.remove(lastIndex);
         }
 
         @Override
